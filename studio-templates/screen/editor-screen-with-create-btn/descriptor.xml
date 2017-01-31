@@ -1,0 +1,54 @@
+<%
+screenId = "${entity.name}.edit"
+controllerName = "${entity.className}Edit"
+def datasourceId = "${entity.uncapitalizedClassName}Ds"
+def nestedDatasourceProperties = helper.getEditorNestedDatasourceProperties(entityView)
+def nestedCollectionDatasourceProperties = helper.getEditorNestedCollectionDatasourceProperties(entityView)
+def optionsDatasources=helper.getOptionsDatasources(entityView)
+def createScrollBox = entityView.allProperties.size() > 10
+def collectionAttributesTablesXml = helper.getEditorCollectionAttributesTablesXml(nestedCollectionDatasourceProperties, entityView)
+%><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<window xmlns="${xmlNamespace_window}"
+        caption="msg://editorCaption"
+        class="${packageName}.${controllerName}"
+        datasource="${datasourceId}"
+        focusComponent="fieldGroup"
+        messagesPack="${packageName}">
+    <dsContext>
+        <datasource id="${datasourceId}"
+                    class="${entity.fqn}"
+                    view="${entityView.name}"<%print ((!nestedDatasourceProperties && !nestedCollectionDatasourceProperties) ? '/>' : '>')%>
+        <%
+        nestedDatasourceProperties.each {
+            print '<datasource id="' + it + 'Ds" property="' + it + '"/>\n'
+        }
+
+        nestedCollectionDatasourceProperties.each {
+            print '<collectionDatasource id="' + it + 'Ds" property="' + it + '"/>\n'
+        }
+        %><%if (nestedDatasourceProperties || nestedCollectionDatasourceProperties) {%></datasource><%}%><%if (optionsDatasources) {
+            optionsDatasources.each {
+                println it.generateXml()
+            }}%>
+    </dsContext>        
+    <dialogMode height="600"
+                width="800"/>
+    <layout expand="buttonsBox" spacing="true">
+    <%if (createScrollBox) {
+        print('<scrollBox id="scrollBox" spacing="true">')}%>
+        ${helper.generateFiledGroupXml(entityView, columnWidth, datasourceId)}
+        <%collectionAttributesTablesXml.each{propertyName, tableXml ->
+            print "\n$tableXml"}%>
+        <%if (createScrollBox) {
+        print('</scrollBox>')
+        }%>
+        <hbox id="buttonsBox"
+              spacing="true">
+            <button id="createNewBtn" caption="Save and create new"
+                    invoke="createNew" disableOnClick="true"/>
+            <frame id="windowActions"
+                   height="100%"
+                   screen="editWindowActions"/>
+        </hbox>
+    </layout>
+</window>
